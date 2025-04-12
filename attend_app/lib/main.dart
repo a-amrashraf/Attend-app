@@ -1,7 +1,13 @@
+import 'package:attend_app/pages/Users_list.dart';
+import 'package:attend_app/pages/add_user.dart';
+import 'package:attend_app/pages/home_page.dart';
 import 'package:flutter/material.dart';
+
 
 void main() {
   runApp(const MainApp());
+  
+
 }
 
 class MainApp extends StatelessWidget {
@@ -9,9 +15,18 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return  MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Center(child: Text('hi  World!'))),
+      home: HomePage(),
+
+      routes: {
+        '/home': (context) => HomePage(),
+        '/Userslist': (context) => UsersList(),
+        '/AddUser': (context) => AddUser(),
+        '/EditUser': (context) => HomePage(),
+        '/DeleteUser': (context) => HomePage(),
+        '/UserDetails': (context) => HomePage(),
+      },
     );
   }
 }
