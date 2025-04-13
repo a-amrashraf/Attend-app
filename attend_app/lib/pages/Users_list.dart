@@ -10,7 +10,6 @@ class UsersList extends StatefulWidget {
 }
 
 class _UsersListState extends State<UsersList> {
-  // Sample data - this would typically come from a database
   List<Map<String, dynamic>> users = [
     {
       "name": "amr",
@@ -34,10 +33,11 @@ class _UsersListState extends State<UsersList> {
     setState(() {
       if (users[index]["sessionsLeft"] > 0) {
         users[index]["sessionsLeft"]--;
+        users[index]["attendanceInfo"] =
+            'Last visit: ${DateTime.now().toString().split(' ')[0]}';
       }
     });
 
-    // Show a confirmation message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Attendance recorded for ${users[index]["name"]}"),
@@ -45,6 +45,12 @@ class _UsersListState extends State<UsersList> {
         duration: Duration(seconds: 2),
       ),
     );
+  }
+
+  void updateUserData(int index, Map<String, dynamic> updatedUser) {
+    setState(() {
+      users[index] = updatedUser;
+    });
   }
 
   @override
@@ -67,6 +73,7 @@ class _UsersListState extends State<UsersList> {
                         user: users[index],
                         index: index,
                         onAttend: decrementSession,
+                        onUpdate: updateUserData,
                       ),
                 ),
               );
