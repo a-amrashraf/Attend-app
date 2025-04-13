@@ -7,14 +7,14 @@ class UserDetails extends StatefulWidget {
   final Map<String, dynamic> user;
   final int index;
   final Function(int) onAttend;
-  final Function(int, Map<String, dynamic>) onUpdate;
+ // final Function(int, Map<String, dynamic>) onUpdate;
 
   const UserDetails({
     super.key,
     required this.user,
     required this.index,
     required this.onAttend,
-    required this.onUpdate,
+   // required this.onUpdate,
   });
 
   @override
@@ -41,7 +41,7 @@ class _UserDetailsState extends State<UserDetails> {
         localUser['attendanceInfo'] =
             'Last visit: ${DateTime.now().toString().split(' ')[0]}';
       });
-      widget.onUpdate(widget.index, localUser);
+     // widget.onUpdate(widget.index, localUser);
     }
   }
 
@@ -86,7 +86,7 @@ class _UserDetailsState extends State<UserDetails> {
                       localUser['daysLeft'] +=
                           sessionsToDays[selectedSessions]!;
                     });
-                    widget.onUpdate(widget.index, localUser);
+                   // widget.onUpdate(widget.index, localUser);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

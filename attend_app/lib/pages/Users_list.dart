@@ -1,5 +1,6 @@
 import 'package:attend_app/components/card.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_details.dart';
 
 class UsersList extends StatefulWidget {
@@ -10,75 +11,172 @@ class UsersList extends StatefulWidget {
 }
 
 class _UsersListState extends State<UsersList> {
-  List<Map<String, dynamic>> users = [
-    {
-      "name": "amr",
-      "sessionsLeft": 8,
-      "daysLeft": 8,
-      "birthdate": "1990-01-01",
-      "phone": "123-456-7890",
-      "attendanceInfo": "Last visit: 2024-04-12",
-    },
-    {
-      "name": "omar",
-      "sessionsLeft": 9,
-      "daysLeft": 20,
-      "birthdate": "1992-05-15",
-      "phone": "098-765-4321",
-      "attendanceInfo": "Last visit: 2024-04-10",
-    },
-  ];
+  final CollectionReference usersRef =
+      FirebaseFirestore.instance.collection('users');
 
-  void decrementSession(int index) {
-    setState(() {
-      if (users[index]["sessionsLeft"] > 0) {
-        users[index]["sessionsLeft"]--;
-        users[index]["attendanceInfo"] =
-            'Last visit: ${DateTime.now().toString().split(' ')[0]}';
-      }
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase(); // Accept full name search
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void decrementSession(String docId, int currentSessions) {
+    if (currentSessions <= 0) return;
+
+    usersRef.doc(docId).update({
+      'sessionsLeft': currentSessions - 1,
+      'attendanceInfo': 'Last visit: ${DateTime.now().toString().split(' ')[0]}',
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Attendance recorded for ${users[index]["name"]}"),
+      const SnackBar(
+        content: Text("Attendance recorded"),
         backgroundColor: Colors.green,
         duration: Duration(seconds: 2),
       ),
     );
   }
 
-  void updateUserData(int index, Map<String, dynamic> updatedUser) {
-    setState(() {
-      users[index] = updatedUser;
-    });
+  int calculateDaysLeft(String? endDateString) {
+    if (endDateString == null) return 0;
+    try {
+      final endDate = DateTime.parse(endDateString);
+      final now = DateTime.now();
+      return endDate.difference(now).inDays;
+    } catch (_) {
+      return 0;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Users List")),
-      body: ListView.builder(
-        itemCount: users.length,
-        itemBuilder: (context, index) {
-          return MyCard(
-            name: users[index]["name"],
-            sessionsLeft: users[index]["sessionsLeft"],
-            daysLeft: users[index]["daysLeft"],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => UserDetails(
-                        user: users[index],
-                        index: index,
-                        onAttend: decrementSession,
-                        onUpdate: updateUserData,
-                      ),
+      appBar: AppBar(title: const Text("Users List")),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: usersRef.snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading users"));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allUsers = snapshot.data!.docs;
+
+          // Filter and sort users
+          final filteredUsers = allUsers.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final name = (data["name"] ?? "").toString().toLowerCase();
+            final sessions = data["sessionsLeft"] ?? 0;
+            return name.contains(_searchQuery) && sessions > 0;
+          }).toList()
+            ..sort((a, b) {
+              final nameA = (a.data() as Map<String, dynamic>)["name"] ?? '';
+              final nameB = (b.data() as Map<String, dynamic>)["name"] ?? '';
+              return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+            });
+
+          final totalUsers = filteredUsers.length;
+          final expiringSoon = filteredUsers.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return (data["sessionsLeft"] ?? 0) < 3;
+          }).length;
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: "Search by name",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-              );
-            },
-            onDecrementSession: () => decrementSession(index),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("📋 Total Users: $totalUsers",
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text("⚠️ Expiring Soon (< 3 sessions): $expiringSoon",
+                        style: const TextStyle(color: Colors.orange)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filteredUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = filteredUsers[index];
+                    final data = user.data() as Map<String, dynamic>;
+                    final sessionsLeft = data["sessionsLeft"] ?? 0;
+                    final daysLeft = calculateDaysLeft(data["endDate"]);
+                    final isExpiringSoon = sessionsLeft < 3;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (isExpiringSoon)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 16, top: 4),
+                            child: Text(
+                              "⚠️ Expiring Soon",
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        MyCard(
+                          name: data["name"] ?? "Unknown",
+                          sessionsLeft: sessionsLeft,
+                          daysLeft: daysLeft,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserDetails(
+                                  user: data,
+                                  index: index,
+                                  onAttend: (_) => decrementSession(user.id, sessionsLeft),
+                                  //onUpdate: (_, __) {},
+                                ),
+                              ),
+                            );
+                          },
+                          onDecrementSession: () =>
+                              decrementSession(user.id, sessionsLeft),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
