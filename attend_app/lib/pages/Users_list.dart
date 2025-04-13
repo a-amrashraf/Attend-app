@@ -62,7 +62,12 @@ class _UsersListState extends State<UsersList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => UserDetails(user: users[index]),
+                  builder:
+                      (context) => UserDetails(
+                        user: users[index],
+                        index: index,
+                        onAttend: decrementSession,
+                      ),
                 ),
               );
             },

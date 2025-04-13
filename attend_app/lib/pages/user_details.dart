@@ -2,10 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:attend_app/components/text_field.dart';
 import 'package:attend_app/components/buttons.dart';
 
-class UserDetails extends StatelessWidget {
+class UserDetails extends StatefulWidget {
   final Map<String, dynamic> user;
+  final int index;
+  final Function(int) onAttend;
 
-  const UserDetails({super.key, required this.user});
+  const UserDetails({
+    super.key,
+    required this.user,
+    required this.index,
+    required this.onAttend,
+  });
+
+  @override
+  State<UserDetails> createState() => _UserDetailsState();
+}
+
+class _UserDetailsState extends State<UserDetails> {
+  late Map<String, dynamic> localUser;
+
+  @override
+  void initState() {
+    super.initState();
+    localUser = Map.from(widget.user);
+  }
+
+  void handleAttendance() {
+    if (localUser['sessionsLeft'] > 0) {
+      widget.onAttend(widget.index);
+      setState(() {
+        localUser['sessionsLeft']--;
+        localUser['attendanceInfo'] =
+            'Last visit: ${DateTime.now().toString().split(' ')[0]}';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,19 +49,19 @@ class UserDetails extends StatelessWidget {
             MyTextfield(
               hintText: 'Name',
               obsecureText: false,
-              controller: TextEditingController(text: user['name']),
+              controller: TextEditingController(text: localUser['name']),
             ),
             SizedBox(height: 16),
             MyTextfield(
               hintText: 'Birthdate',
               obsecureText: false,
-              controller: TextEditingController(text: user['birthdate']),
+              controller: TextEditingController(text: localUser['birthdate']),
             ),
             SizedBox(height: 16),
             MyTextfield(
               hintText: 'Phone Number',
               obsecureText: false,
-              controller: TextEditingController(text: user['phone']),
+              controller: TextEditingController(text: localUser['phone']),
             ),
             SizedBox(height: 16),
             Row(
@@ -45,7 +76,7 @@ class UserDetails extends StatelessWidget {
                     child: Column(
                       children: [
                         Text('Remain Session'),
-                        Text('${user['sessionsLeft']}'),
+                        Text('${localUser['sessionsLeft']}'),
                       ],
                     ),
                   ),
@@ -61,7 +92,7 @@ class UserDetails extends StatelessWidget {
                     child: Column(
                       children: [
                         Text('Remain Days'),
-                        Text('${user['daysLeft']}'),
+                        Text('${localUser['daysLeft']}'),
                       ],
                     ),
                   ),
@@ -76,16 +107,10 @@ class UserDetails extends StatelessWidget {
                 border: Border.all(),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text(user['attendanceInfo'] ?? 'No attendance info'),
+              child: Text(localUser['attendanceInfo'] ?? 'No attendance info'),
             ),
             Spacer(),
-            MyButton(
-              text: 'Customer Attend',
-              onTap: () {
-                // TODO: Implement attendance logic
-                Navigator.pop(context);
-              },
-            ),
+            MyButton(text: 'Customer Attend', onTap: handleAttendance),
             SizedBox(height: 8),
             MyButton(
               text: 'Renew Membership',
