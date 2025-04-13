@@ -12,8 +12,22 @@ class UsersList extends StatefulWidget {
 class _UsersListState extends State<UsersList> {
   // Sample data - this would typically come from a database
   List<Map<String, dynamic>> users = [
-    {"name": "amr", "sessionsLeft": 8, "daysLeft": 8},
-    {"name": "omar", "sessionsLeft": 9, "daysLeft": 20},
+    {
+      "name": "amr",
+      "sessionsLeft": 8,
+      "daysLeft": 8,
+      "birthdate": "1990-01-01",
+      "phone": "123-456-7890",
+      "attendanceInfo": "Last visit: 2024-04-12",
+    },
+    {
+      "name": "omar",
+      "sessionsLeft": 9,
+      "daysLeft": 20,
+      "birthdate": "1992-05-15",
+      "phone": "098-765-4321",
+      "attendanceInfo": "Last visit: 2024-04-10",
+    },
   ];
 
   void decrementSession(int index) {
