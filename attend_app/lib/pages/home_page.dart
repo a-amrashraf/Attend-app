@@ -1,7 +1,6 @@
 import 'package:attend_app/components/buttons.dart';
 import 'package:flutter/material.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -23,20 +22,29 @@ class _MyWidgetState extends State<HomePage> {
           ),
         ),
         backgroundColor: const Color(0xFFFFD60A), // Primary color
-        title: Text('Welcome', style: TextStyle(color: Color(0xFF0A0A0A)),), // Text color
+        title: Text(
+          'Welcome',
+          style: TextStyle(color: Color(0xFF0A0A0A)),
+        ), // Text color
       ),
       body: Container(
         child: Column(
           children: [
-            SizedBox(height: 30,),
-            MyButton(text:"Users List", onTap: () {
-              Navigator.pushNamed(context, '/Userslist');
-            }),
-            SizedBox(height: 30,),
-            MyButton(text:"Add User", onTap: () {
-              Navigator.pushNamed(context, '/AddUser');
-            }),
-            SizedBox(height: 30,),
+            SizedBox(height: 30),
+            MyButton(
+              text: "Users List",
+              onTap: () {
+                Navigator.pushNamed(context, '/Userslist');
+              },
+            ),
+            SizedBox(height: 30),
+            MyButton(
+              text: "Add User",
+              onTap: () {
+                Navigator.pushNamed(context, '/AddUser');
+              },
+            ),
+            SizedBox(height: 30),
             Container(
               height: 50,
               width: 50,
@@ -44,11 +52,10 @@ class _MyWidgetState extends State<HomePage> {
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8),
               ),
-            )
-            
-          ]
-        )
-      )
-      );
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

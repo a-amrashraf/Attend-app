@@ -1,5 +1,6 @@
 import 'package:attend_app/components/card.dart';
 import 'package:flutter/material.dart';
+import 'user_details.dart';
 
 class UsersList extends StatefulWidget {
   const UsersList({super.key});
@@ -44,7 +45,12 @@ class _UsersListState extends State<UsersList> {
             sessionsLeft: users[index]["sessionsLeft"],
             daysLeft: users[index]["daysLeft"],
             onTap: () {
-              // Navigation to user details or other action
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserDetails(user: users[index]),
+                ),
+              );
             },
             onDecrementSession: () => decrementSession(index),
           );
