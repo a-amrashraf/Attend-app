@@ -1,17 +1,18 @@
-import 'package:attend_app/pages/Users_list.dart';
+import 'package:attend_app/pages/users_list.dart';
 import 'package:attend_app/pages/add_user.dart';
 import 'package:attend_app/pages/home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; 
+import 'package:firebase_core/firebase_core.dart';
+// import 'firebase_options.dart';
+
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform, // ⬅️ This replaces the empty call
+  // );
   runApp(const MainApp());
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure widgets are initialized
-  await Firebase.initializeApp(); // Initialize Firebase
-
-  runApp(const MainApp());
-
 }
 
 void testFirebaseConnection() async {

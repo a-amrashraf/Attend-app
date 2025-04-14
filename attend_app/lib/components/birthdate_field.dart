@@ -1,50 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class BirthdateEntryField extends StatefulWidget {
+  final void Function(DateTime)? onDateSelected;
+
+  const BirthdateEntryField({super.key, this.onDateSelected});
+
   @override
   _BirthdateEntryFieldState createState() => _BirthdateEntryFieldState();
 }
 
 class _BirthdateEntryFieldState extends State<BirthdateEntryField> {
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   DateTime? _selectedDate;
 
   Future<void> _selectDate(BuildContext context) async {
-    DateTime initialDate = _selectedDate ?? DateTime.now();
-    DateTime firstDate = DateTime(1900);
-    DateTime lastDate = DateTime.now();
-
-    final DateTime? pickedDate = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
+      initialDate: _selectedDate ?? DateTime(2000),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
     );
 
     if (pickedDate != null && pickedDate != _selectedDate) {
       setState(() {
         _selectedDate = pickedDate;
-        _controller.text = "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"; // Format the date
+        _controller.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
       });
+
+      if (widget.onDateSelected != null) {
+        widget.onDateSelected!(pickedDate);
+      }
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _selectDate(context),
-      child: AbsorbPointer( // Prevents keyboard from showing when tapping on TextField
+      child: AbsorbPointer(
         child: TextField(
           controller: _controller,
-          readOnly: true, // Makes the TextField read-only
+          readOnly: true,
           decoration: InputDecoration(
-            labelText: 'Birthdate',
-            hintText: 'Tap to select your birthdate',
+            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+            hintText: 'Select Birthdate',
+            hintStyle: const TextStyle(color: Colors.black54),
+            filled: true,
+            fillColor: Colors.white,
+            suffixIcon: const Icon(Icons.calendar_today, color: Colors.black87, size: 20),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.grey),
             ),
-            suffixIcon: Icon(Icons.calendar_today),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.black),
+            ),
           ),
         ),
       ),

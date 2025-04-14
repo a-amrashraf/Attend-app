@@ -40,16 +40,25 @@ class _AddUserState extends State<AddUser> {
     final phone = numbercontroller.text.trim();
     final fullName = '$firstName $lastName';
 
-    if (firstName.isEmpty || lastName.isEmpty || phone.isEmpty || birthdate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please complete all fields")),
-      );
-      return;
-    }
+  if (firstName.isEmpty || lastName.isEmpty || phone.isEmpty || birthdate == null || !RegExp(r'^\d{10,}$').hasMatch(phone)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("Please complete all fields correctly")),
+  );
+  return;
+}
 
     final now = DateTime.now();
     final int sessions = int.parse(selectedSessions);
-    final endDate = DateTime(now.year, now.month + (sessions ~/ 10), now.day);
+    late DateTime endDate;
+
+if (sessions == 10) {
+  endDate = now.add(const Duration(days: 35)); // 5 weeks
+} else if (sessions == 20) {
+  endDate = now.add(const Duration(days: 56)); // 8 weeks
+} else if (sessions == 30) {
+  endDate = now.add(const Duration(days: 77)); // 11 weeks
+}
+
 
     await FirebaseFirestore.instance.collection('users').add({
       "name": fullName,
@@ -60,6 +69,15 @@ class _AddUserState extends State<AddUser> {
       "endDate": DateFormat('yyyy-MM-dd').format(endDate),
       "attendanceInfo": "New User"
     });
+
+    firstnamecontroller.clear();
+lastnamecontroller.clear();
+numbercontroller.clear();
+setState(() {
+  birthdate = null;
+  selectedSessions = '10';
+});
+
 
     Navigator.pushReplacementNamed(context, '/home');
   }
@@ -90,44 +108,83 @@ class _AddUserState extends State<AddUser> {
               obsecureText: false,
               controller: numbercontroller,
             ),
-            SizedBox(height: 20),
-            GestureDetector(
-              onTap: pickBirthdate,
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 25),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  birthdate == null
-                      ? 'Select Birthdate'
-                      : DateFormat('yyyy-MM-dd').format(birthdate!),
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ),
+            
+SizedBox(height: 20),
+GestureDetector(
+  onTap: () async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: birthdate ?? DateTime(2000),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        birthdate = pickedDate;
+      });
+    }
+  },
+  child: Container(
+    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          birthdate == null
+              ? 'Select Birthdate'
+              : DateFormat('yyyy-MM-dd').format(birthdate!),
+          style: TextStyle(
+            fontSize: 16,
+            color: birthdate == null ? Colors.black54 : Colors.black,
+          ),
+        ),
+        const Icon(Icons.calendar_today, color: Colors.black87, size: 20),
+      ],
+    ),
+  ),
+),
             SizedBox(height: 20),
             Text("Number of Sessions:", style: TextStyle(fontSize: 20)),
             SizedBox(height: 10),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 25),
-              child: DropdownButton<String>(
-                value: selectedSessions,
-                isExpanded: true,
-                items: ['10', '20', '30'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text("$value Sessions"),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedSessions = newValue!;
-                  });
-                },
-              ),
-            ),
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    border: Border.all(color: Colors.black),
+    borderRadius: BorderRadius.circular(10),
+  ),
+  child: DropdownButtonHideUnderline(
+    child: DropdownButton<String>(
+      value: selectedSessions,
+      isExpanded: true,
+      dropdownColor: Colors.white,
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+      style: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      ),
+      items: ['10', '20', '30'].map((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text("$value Sessions"),
+        );
+      }).toList(),
+      onChanged: (newValue) {
+        setState(() {
+          selectedSessions = newValue!;
+        });
+      },
+    ),
+  ),
+),
+
             SizedBox(height: 30),
             MyButton(
               text: "Add User",
