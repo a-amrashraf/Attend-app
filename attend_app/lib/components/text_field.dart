@@ -5,6 +5,7 @@ class MyTextfield extends StatelessWidget {
   final bool obsecureText;
   final TextEditingController controller;
   final FocusNode? focusNode;
+  final bool enabled;
 
   const MyTextfield({
     super.key,
@@ -12,6 +13,7 @@ class MyTextfield extends StatelessWidget {
     required this.obsecureText,
     required this.controller,
     this.focusNode,
+    this.enabled = true,
   });
 
   @override
@@ -22,12 +24,16 @@ class MyTextfield extends StatelessWidget {
         obscureText: obsecureText,
         controller: controller,
         focusNode: focusNode,
+        enabled: enabled,
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 18,
+            horizontal: 16,
+          ),
           hintText: hintText,
           hintStyle: const TextStyle(color: Colors.black54),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: enabled ? Colors.white : Colors.grey[200],
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Colors.grey),
@@ -40,7 +46,12 @@ class MyTextfield extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Colors.black),
           ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
         ),
+        style: TextStyle(color: enabled ? Colors.black : Colors.grey[700]),
       ),
     );
   }

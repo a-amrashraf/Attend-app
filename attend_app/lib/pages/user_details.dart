@@ -218,13 +218,6 @@ class _UserDetailsState extends State<UserDetails> {
 
           final userData = snapshot.data!.data() as Map<String, dynamic>;
 
-          // Update controllers with latest data if not editing
-          //if (!isEditing) {
-          //   nameController.text = userData['name'] ?? '';
-          //  birthdateController.text = userData['birthdate'] ?? '';
-          // phoneController.text = userData['phone'] ?? '';
-          //  }
-
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -233,18 +226,21 @@ class _UserDetailsState extends State<UserDetails> {
                   hintText: 'Name',
                   obsecureText: false,
                   controller: nameController,
+                  enabled: isEditing, // Add this line
                 ),
                 SizedBox(height: 16),
                 MyTextfield(
                   hintText: 'Birthdate',
                   obsecureText: false,
                   controller: birthdateController,
+                  enabled: isEditing, // Add this line
                 ),
                 SizedBox(height: 16),
                 MyTextfield(
                   hintText: 'Phone Number',
                   obsecureText: false,
                   controller: phoneController,
+                  enabled: isEditing, // Add this line
                 ),
                 SizedBox(height: 16),
                 Row(
