@@ -11,8 +11,9 @@ class UsersList extends StatefulWidget {
 }
 
 class _UsersListState extends State<UsersList> {
-  final CollectionReference usersRef =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference usersRef = FirebaseFirestore.instance.collection(
+    'users',
+  );
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -22,7 +23,10 @@ class _UsersListState extends State<UsersList> {
     super.initState();
     _searchController.addListener(() {
       setState(() {
-        _searchQuery = _searchController.text.trim().toLowerCase(); // Accept full name search
+        _searchQuery =
+            _searchController.text
+                .trim()
+                .toLowerCase(); // Accept full name search
       });
     });
   }
@@ -38,7 +42,8 @@ class _UsersListState extends State<UsersList> {
 
     usersRef.doc(docId).update({
       'sessionsLeft': currentSessions - 1,
-      'attendanceInfo': 'Last visit: ${DateTime.now().toString().split(' ')[0]}',
+      'attendanceInfo':
+          'Last visit: ${DateTime.now().toString().split(' ')[0]}',
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -79,23 +84,27 @@ class _UsersListState extends State<UsersList> {
           final allUsers = snapshot.data!.docs;
 
           // Filter and sort users
-          final filteredUsers = allUsers.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final name = (data["name"] ?? "").toString().toLowerCase();
-            final sessions = data["sessionsLeft"] ?? 0;
-            return name.contains(_searchQuery) && sessions > 0;
-          }).toList()
-            ..sort((a, b) {
-              final nameA = (a.data() as Map<String, dynamic>)["name"] ?? '';
-              final nameB = (b.data() as Map<String, dynamic>)["name"] ?? '';
-              return nameA.toLowerCase().compareTo(nameB.toLowerCase());
-            });
+          final filteredUsers =
+              allUsers.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final name = (data["name"] ?? "").toString().toLowerCase();
+                  final sessions = data["sessionsLeft"] ?? 0;
+                  return name.contains(_searchQuery) && sessions > 0;
+                }).toList()
+                ..sort((a, b) {
+                  final nameA =
+                      (a.data() as Map<String, dynamic>)["name"] ?? '';
+                  final nameB =
+                      (b.data() as Map<String, dynamic>)["name"] ?? '';
+                  return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+                });
 
           final totalUsers = filteredUsers.length;
-          final expiringSoon = filteredUsers.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return (data["sessionsLeft"] ?? 0) < 3;
-          }).length;
+          final expiringSoon =
+              filteredUsers.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return (data["sessionsLeft"] ?? 0) < 3;
+              }).length;
 
           return Column(
             children: [
@@ -117,12 +126,18 @@ class _UsersListState extends State<UsersList> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("📋 Total Users: $totalUsers",
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      "📋 Total Users: $totalUsers",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text("⚠️ Expiring Soon (< 3 sessions): $expiringSoon",
-                        style: const TextStyle(color: Colors.orange)),
+                    Text(
+                      "⚠️ Expiring Soon (< 3 sessions): $expiringSoon",
+                      style: const TextStyle(color: Colors.orange),
+                    ),
                   ],
                 ),
               ),
@@ -159,17 +174,22 @@ class _UsersListState extends State<UsersList> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => UserDetails(
-                                  user: data,
-                                  index: index,
-                                  onAttend: (_) => decrementSession(user.id, sessionsLeft),
-                                  //onUpdate: (_, __) {},
-                                ),
+                                builder:
+                                    (context) => UserDetails(
+                                      user: data,
+                                      index: index,
+                                      onAttend:
+                                          (_) => decrementSession(
+                                            user.id,
+                                            sessionsLeft,
+                                          ),
+                                      //onUpdate: (_, __) {},
+                                    ),
                               ),
                             );
                           },
-                          onDecrementSession: () =>
-                              decrementSession(user.id, sessionsLeft),
+                          onDecrementSession:
+                              () => decrementSession(user.id, sessionsLeft),
                         ),
                       ],
                     );

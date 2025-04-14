@@ -7,14 +7,14 @@ class UserDetails extends StatefulWidget {
   final Map<String, dynamic> user;
   final int index;
   final Function(int) onAttend;
- // final Function(int, Map<String, dynamic>) onUpdate;
+  // final Function(int, Map<String, dynamic>) onUpdate;
 
   const UserDetails({
     super.key,
     required this.user,
     required this.index,
     required this.onAttend,
-   // required this.onUpdate,
+    // required this.onUpdate,
   });
 
   @override
@@ -41,7 +41,7 @@ class _UserDetailsState extends State<UserDetails> {
         localUser['attendanceInfo'] =
             'Last visit: ${DateTime.now().toString().split(' ')[0]}';
       });
-     // widget.onUpdate(widget.index, localUser);
+      // widget.onUpdate(widget.index, localUser);
     }
   }
 
@@ -81,12 +81,21 @@ class _UserDetailsState extends State<UserDetails> {
                 ),
                 TextButton(
                   onPressed: () {
+                    // Parse current end date
+                    DateTime currentEndDate = DateTime.parse(
+                      localUser['endDate'],
+                    );
+                    // Add days based on selected sessions
+                    DateTime newEndDate = currentEndDate.add(
+                      Duration(days: sessionsToDays[selectedSessions]!),
+                    );
+
                     setState(() {
                       localUser['sessionsLeft'] += int.parse(selectedSessions);
-                      localUser['daysLeft'] +=
-                          sessionsToDays[selectedSessions]!;
+                      localUser['endDate'] =
+                          newEndDate.toString().split(' ')[0];
                     });
-                   // widget.onUpdate(widget.index, localUser);
+
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -159,8 +168,8 @@ class _UserDetailsState extends State<UserDetails> {
                     ),
                     child: Column(
                       children: [
-                        Text('Remain Days'),
-                        Text('${localUser['daysLeft']}'),
+                        Text('expiry date'),
+                        Text('${localUser['endDate']}'),
                       ],
                     ),
                   ),
