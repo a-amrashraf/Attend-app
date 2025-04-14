@@ -23,6 +23,60 @@ class _UserDetailsState extends State<UserDetails> {
   String selectedSessions = '10';
   final Map<String, int> sessionsToDays = {'10': 35, '20': 56, '30': 77};
 
+  //  controllers for editable fields
+  late TextEditingController nameController;
+  late TextEditingController birthdateController;
+  late TextEditingController phoneController;
+  bool isEditing = false;
+
+  // In initState, initialize with initial data
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: widget.initialData['name']);
+    birthdateController = TextEditingController(
+      text: widget.initialData['birthdate'],
+    );
+    phoneController = TextEditingController(text: widget.initialData['phone']);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    birthdateController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> handleUpdateUserInfo() async {
+    try {
+      await usersRef.doc(widget.docId).update({
+        'name': nameController.text,
+        'birthdate': birthdateController.text,
+        'phone': phoneController.text,
+      });
+
+      setState(() {
+        isEditing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User information updated successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating user information: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> handleAttendance() async {
     try {
       DocumentSnapshot doc = await usersRef.doc(widget.docId).get();
@@ -134,7 +188,23 @@ class _UserDetailsState extends State<UserDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('User Details')),
+      appBar: AppBar(
+        title: Text('User Details'),
+        actions: [
+          IconButton(
+            icon: Icon(isEditing ? Icons.save : Icons.edit),
+            onPressed: () {
+              if (isEditing) {
+                handleUpdateUserInfo();
+              } else {
+                setState(() {
+                  isEditing = true;
+                });
+              }
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: usersRef.doc(widget.docId).snapshots(),
         builder: (context, snapshot) {
@@ -148,6 +218,13 @@ class _UserDetailsState extends State<UserDetails> {
 
           final userData = snapshot.data!.data() as Map<String, dynamic>;
 
+          // Update controllers with latest data if not editing
+          //if (!isEditing) {
+          //   nameController.text = userData['name'] ?? '';
+          //  birthdateController.text = userData['birthdate'] ?? '';
+          // phoneController.text = userData['phone'] ?? '';
+          //  }
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -155,21 +232,19 @@ class _UserDetailsState extends State<UserDetails> {
                 MyTextfield(
                   hintText: 'Name',
                   obsecureText: false,
-                  controller: TextEditingController(text: userData['name']),
+                  controller: nameController,
                 ),
                 SizedBox(height: 16),
                 MyTextfield(
                   hintText: 'Birthdate',
                   obsecureText: false,
-                  controller: TextEditingController(
-                    text: userData['birthdate'],
-                  ),
+                  controller: birthdateController,
                 ),
                 SizedBox(height: 16),
                 MyTextfield(
                   hintText: 'Phone Number',
                   obsecureText: false,
-                  controller: TextEditingController(text: userData['phone']),
+                  controller: phoneController,
                 ),
                 SizedBox(height: 16),
                 Row(
