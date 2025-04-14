@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:attend_app/components/text_field.dart';
 import 'package:attend_app/components/buttons.dart';
 import 'package:attend_app/pages/sesh_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserDetails extends StatefulWidget {
-  final Map<String, dynamic> user;
-  final int index;
-  final Function(int) onAttend;
-  // final Function(int, Map<String, dynamic>) onUpdate;
+  final String docId;
+  final Map<String, dynamic> initialData;
 
   const UserDetails({
     super.key,
-    required this.user,
-    required this.index,
-    required this.onAttend,
-    // required this.onUpdate,
+    required this.docId,
+    required this.initialData,
   });
 
   @override
@@ -22,30 +19,38 @@ class UserDetails extends StatefulWidget {
 }
 
 class _UserDetailsState extends State<UserDetails> {
-  late Map<String, dynamic> localUser;
+  final usersRef = FirebaseFirestore.instance.collection('users');
   String selectedSessions = '10';
-
   final Map<String, int> sessionsToDays = {'10': 35, '20': 56, '30': 77};
 
-  @override
-  void initState() {
-    super.initState();
-    localUser = Map.from(widget.user);
-  }
+  Future<void> handleAttendance() async {
+    try {
+      DocumentSnapshot doc = await usersRef.doc(widget.docId).get();
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-  void handleAttendance() {
-    if (localUser['sessionsLeft'] > 0) {
-      widget.onAttend(widget.index);
-      setState(() {
-        localUser['sessionsLeft']--;
-        localUser['attendanceInfo'] =
-            'Last visit: ${DateTime.now().toString().split(' ')[0]}';
-      });
-      // widget.onUpdate(widget.index, localUser);
+      if (data['sessionsLeft'] > 0) {
+        await usersRef.doc(widget.docId).update({
+          'sessionsLeft': data['sessionsLeft'] - 1,
+          'attendanceInfo':
+              'Last visit: ${DateTime.now().toString().split(' ')[0]}',
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Attendance recorded successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
-  void handleRenewal() {
+  Future<void> handleRenewal() async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -80,30 +85,41 @@ class _UserDetailsState extends State<UserDetails> {
                   child: Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Parse current end date
-                    DateTime currentEndDate = DateTime.parse(
-                      localUser['endDate'],
-                    );
-                    // Add days based on selected sessions
-                    DateTime newEndDate = currentEndDate.add(
-                      Duration(days: sessionsToDays[selectedSessions]!),
-                    );
+                  onPressed: () async {
+                    try {
+                      DocumentSnapshot doc =
+                          await usersRef.doc(widget.docId).get();
+                      Map<String, dynamic> data =
+                          doc.data() as Map<String, dynamic>;
 
-                    setState(() {
-                      localUser['sessionsLeft'] += int.parse(selectedSessions);
-                      localUser['endDate'] =
-                          newEndDate.toString().split(' ')[0];
-                    });
+                      DateTime currentEndDate = DateTime.parse(data['endDate']);
+                      DateTime newEndDate = currentEndDate.add(
+                        Duration(days: sessionsToDays[selectedSessions]!),
+                      );
 
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Membership renewed successfully'),
-                        backgroundColor: Colors.green,
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                      await usersRef.doc(widget.docId).update({
+                        'sessionsLeft':
+                            data['sessionsLeft'] + int.parse(selectedSessions),
+                        'endDate': newEndDate.toString().split(' ')[0],
+                      });
+
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Membership renewed successfully'),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
                   child: Text('Confirm'),
                 ),
@@ -119,79 +135,98 @@ class _UserDetailsState extends State<UserDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('User Details')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            MyTextfield(
-              hintText: 'Name',
-              obsecureText: false,
-              controller: TextEditingController(text: localUser['name']),
-            ),
-            SizedBox(height: 16),
-            MyTextfield(
-              hintText: 'Birthdate',
-              obsecureText: false,
-              controller: TextEditingController(text: localUser['birthdate']),
-            ),
-            SizedBox(height: 16),
-            MyTextfield(
-              hintText: 'Phone Number',
-              obsecureText: false,
-              controller: TextEditingController(text: localUser['phone']),
-            ),
-            SizedBox(height: 16),
-            Row(
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: usersRef.doc(widget.docId).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('Remain Session'),
-                        Text('${localUser['sessionsLeft']}'),
-                      ],
-                    ),
+                MyTextfield(
+                  hintText: 'Name',
+                  obsecureText: false,
+                  controller: TextEditingController(text: userData['name']),
+                ),
+                SizedBox(height: 16),
+                MyTextfield(
+                  hintText: 'Birthdate',
+                  obsecureText: false,
+                  controller: TextEditingController(
+                    text: userData['birthdate'],
                   ),
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(4),
+                SizedBox(height: 16),
+                MyTextfield(
+                  hintText: 'Phone Number',
+                  obsecureText: false,
+                  controller: TextEditingController(text: userData['phone']),
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Remain Session'),
+                            Text('${userData['sessionsLeft']}'),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        Text('expiry date'),
-                        Text('${localUser['endDate']}'),
-                      ],
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Expiry Date'),
+                            Text('${userData['endDate']}'),
+                          ],
+                        ),
+                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    userData['attendanceInfo'] ?? 'No attendance info',
                   ),
                 ),
+                Spacer(),
+                MyButton(text: 'Customer Attend', onTap: handleAttendance),
+                SizedBox(height: 8),
+                MyButton(text: 'Renew Membership', onTap: handleRenewal),
               ],
             ),
-            SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(localUser['attendanceInfo'] ?? 'No attendance info'),
-            ),
-            Spacer(),
-            MyButton(text: 'Customer Attend', onTap: handleAttendance),
-            SizedBox(height: 8),
-            MyButton(text: 'Renew Membership', onTap: handleRenewal),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -176,14 +176,8 @@ class _UsersListState extends State<UsersList> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => UserDetails(
-                                      user: data,
-                                      index: index,
-                                      onAttend:
-                                          (_) => decrementSession(
-                                            user.id,
-                                            sessionsLeft,
-                                          ),
-                                      //onUpdate: (_, __) {},
+                                      docId: user.id,
+                                      initialData: data,
                                     ),
                               ),
                             );
