@@ -5,7 +5,7 @@ class CustomDropdown extends StatefulWidget {
   final String initialSelection;
   final void Function(String)? onChanged;
 
-  CustomDropdown({
+  const CustomDropdown({
     super.key,
     required this.options,
     required this.initialSelection,
@@ -18,7 +18,7 @@ class CustomDropdown extends StatefulWidget {
 
 class _CustomDropdownState extends State<CustomDropdown> {
   late String _selectedValue;
-  final GlobalKey _key = GlobalKey(); // Key for widget positioning
+  final GlobalKey _key = GlobalKey();
 
   @override
   void initState() {
@@ -29,25 +29,34 @@ class _CustomDropdownState extends State<CustomDropdown> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        _showDropdownMenu();
-      },
+      onTap: _showDropdownMenu,
       child: Container(
-        key: _key, // Attach the GlobalKey here
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        key: _key,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black.withOpacity(0.2)),
+          border: Border.all(color: Colors.black, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              _selectedValue,
-              style: TextStyle(fontSize: 16, color: Colors.black),
+              "$_selectedValue Sessions",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            Icon(Icons.arrow_drop_down, color: Colors.black),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
           ],
         ),
       ),
@@ -56,22 +65,25 @@ class _CustomDropdownState extends State<CustomDropdown> {
 
   void _showDropdownMenu() async {
     final RenderBox renderBox = _key.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero); // Get position on screen
+    final position = renderBox.localToGlobal(Offset.zero);
 
     final selectedOption = await showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
-        position.dx,  // X position of the widget
-        position.dy + renderBox.size.height, // Y position, just below the widget
-        position.dx + renderBox.size.width, // X position for the right side of the widget
-        position.dy + renderBox.size.height + 200, // Y position for the dropdown height (you can adjust)
+        position.dx,
+        position.dy + renderBox.size.height,
+        position.dx + renderBox.size.width,
+        position.dy + renderBox.size.height + 200,
       ),
       items: widget.options.map((String value) {
         return PopupMenuItem<String>(
           value: value,
           child: Text(
-            value,
-            style: TextStyle(color: Colors.black),
+            "$value Sessions",
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         );
       }).toList(),
@@ -82,9 +94,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
       setState(() {
         _selectedValue = selectedOption;
       });
-      if (widget.onChanged != null) {
-        widget.onChanged!(selectedOption);
-      }
+      widget.onChanged?.call(selectedOption);
     }
   }
 }
