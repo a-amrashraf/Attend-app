@@ -77,14 +77,14 @@ class _HomePageState extends State<HomePage>
           const SizedBox(height: 40),
 
           MyButton(
-            text: "Users List",
+            text: "Customer List",
             onTap: () {
               Navigator.pushNamed(context, '/Userslist');
             },
           ),
 
           MyButton(
-            text: "Add User",
+            text: "Add Customer",
             onTap: () {
               Navigator.pushNamed(context, '/AddUser');
             },
