@@ -16,15 +16,21 @@ dependencies:
   url_launcher: ^6.1.10
   font_awesome_flutter: ^10.5.0
   intl: ^0.18.1
-  
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
-
   assets:
+    - assets/images/rise_icon.png
     - assets/images/rise_logo.png
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/rise_logo.png"
+  remove_alpha_ios: true
+

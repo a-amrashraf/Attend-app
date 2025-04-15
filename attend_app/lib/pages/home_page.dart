@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage>
             opacity: _fadeIn,
             child: Center(
               child: Image.asset(
-                "assets/images/rise_logo.png",
+                "assets/images/rise_icon.png",
                 height: 120,
                 fit: BoxFit.contain,
               ),
