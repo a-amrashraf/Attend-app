@@ -13,7 +13,10 @@ dependencies:
   provider: ^6.1.4
   cloud_firestore: ^4.14.0
   firebase_core: ^2.25.4
+  url_launcher: ^6.1.10
+  font_awesome_flutter: ^10.5.0
   intl: ^0.18.1
+  
 
 dev_dependencies:
   flutter_test:
