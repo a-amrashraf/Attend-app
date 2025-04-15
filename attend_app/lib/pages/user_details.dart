@@ -8,7 +8,11 @@ class UserDetails extends StatefulWidget {
   final String docId;
   final Map<String, dynamic> initialData;
 
-  const UserDetails({super.key, required this.docId, required this.initialData});
+  const UserDetails({
+    super.key,
+    required this.docId,
+    required this.initialData,
+  });
 
   @override
   State<UserDetails> createState() => _UserDetailsState();
@@ -30,7 +34,9 @@ class _UserDetailsState extends State<UserDetails> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.initialData['name']);
-    birthdateController = TextEditingController(text: widget.initialData['birthdate']);
+    birthdateController = TextEditingController(
+      text: widget.initialData['birthdate'],
+    );
     phoneController = TextEditingController(text: widget.initialData['phone']);
     sessionsLeft = widget.initialData['sessionsLeft'] ?? 0;
     expiryDate = widget.initialData['endDate'] ?? '';
@@ -57,7 +63,10 @@ class _UserDetailsState extends State<UserDetails> {
       setState(() => isEditing = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User updated!'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('User updated!'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,70 +81,87 @@ class _UserDetailsState extends State<UserDetails> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Renew Membership'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Select number of sessions to add:'),
-                const SizedBox(height: 16),
-                CustomDropdown(
-                  options: ['10', '20', '30'],
-                  initialSelection: selectedSessions,
-                  onChanged: (value) {
-                    setDialogState(() {
-                      selectedSessions = value;
-                    });
-                  },
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: const Text('Renew Membership'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Select number of sessions to add:'),
+                    const SizedBox(height: 16),
+                    CustomDropdown(
+                      options: ['10', '20', '30'],
+                      initialSelection: selectedSessions,
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedSessions = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Days to be added: ${sessionsToDays[selectedSessions]}',
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text('Days to be added: ${sessionsToDays[selectedSessions]}'),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-              TextButton(
-                onPressed: () async {
-                  try {
-                    final doc = await usersRef.doc(widget.docId).get();
-                    final data = doc.data() as Map<String, dynamic>;
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        final doc = await usersRef.doc(widget.docId).get();
+                        final data = doc.data() as Map<String, dynamic>;
 
-                    final int currentSessions = data['sessionsLeft'] ?? 0;
-                    final String currentExpiryStr = data['endDate'] ?? '';
-                    final DateTime currentExpiry = DateTime.tryParse(currentExpiryStr) ?? DateTime.now();
+                        final int currentSessions = data['sessionsLeft'] ?? 0;
+                        final String currentExpiryStr = data['endDate'] ?? '';
+                        final DateTime currentExpiry =
+                            DateTime.tryParse(currentExpiryStr) ??
+                            DateTime.now();
 
-                    final int newSessions = currentSessions + int.parse(selectedSessions);
-                    final DateTime newExpiry = currentExpiry.add(Duration(days: sessionsToDays[selectedSessions]!));
+                        final int newSessions =
+                            currentSessions + int.parse(selectedSessions);
+                        final DateTime newExpiry = currentExpiry.add(
+                          Duration(days: sessionsToDays[selectedSessions]!),
+                        );
 
-                    await usersRef.doc(widget.docId).update({
-                      'sessionsLeft': newSessions,
-                      'endDate': newExpiry.toString().split(' ')[0],
-                    });
+                        await usersRef.doc(widget.docId).update({
+                          'sessionsLeft': newSessions,
+                          'endDate': newExpiry.toString().split(' ')[0],
+                        });
 
-                    Navigator.pop(context);
-                    setState(() {
-                      sessionsLeft = newSessions;
-                      expiryDate = newExpiry.toString().split(' ')[0];
-                    });
+                        Navigator.pop(context);
+                        setState(() {
+                          sessionsLeft = newSessions;
+                          expiryDate = newExpiry.toString().split(' ')[0];
+                        });
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membership renewed successfully'), backgroundColor: Colors.green),
-                    );
-                  } catch (e) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                    );
-                  }
-                },
-                child: const Text('Confirm'),
-              ),
-            ],
-          );
-        },
-      ),
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Membership renewed successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Confirm'),
+                  ),
+                ],
+              );
+            },
+          ),
     );
   }
 
@@ -158,13 +184,21 @@ class _UserDetailsState extends State<UserDetails> {
       backgroundColor: const Color(0xFFFFF9F4),
       appBar: AppBar(
         backgroundColor: const Color(0xFFFFD60A),
-        title: const Text('User Details', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'User Details',
+          style: TextStyle(color: Colors.black),
+        ),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
-            icon: Icon(isEditing ? Icons.save : Icons.edit, color: Colors.black),
+            icon: Icon(
+              isEditing ? Icons.save : Icons.edit,
+              color: Colors.black,
+            ),
             onPressed: () {
-              isEditing ? handleUpdateUserInfo() : setState(() => isEditing = true);
+              isEditing
+                  ? handleUpdateUserInfo()
+                  : setState(() => isEditing = true);
             },
           ),
           IconButton(
@@ -172,17 +206,26 @@ class _UserDetailsState extends State<UserDetails> {
             onPressed: () async {
               final confirm = await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Confirm Delete"),
-                  content: const Text("Are you sure you want to delete this user? This action cannot be undone."),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text("Confirm Delete"),
+                      content: const Text(
+                        "Are you sure you want to delete this user? This action cannot be undone.",
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text(
+                            "Delete",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               );
 
               if (confirm == true) {
@@ -200,7 +243,10 @@ class _UserDetailsState extends State<UserDetails> {
                       onPressed: () async {
                         await usersRef.doc(widget.docId).set(deletedUserData);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('User restored'), backgroundColor: Colors.green),
+                          const SnackBar(
+                            content: Text('User restored'),
+                            backgroundColor: Colors.green,
+                          ),
                         );
                       },
                     ),
@@ -214,25 +260,54 @@ class _UserDetailsState extends State<UserDetails> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: usersRef.doc(widget.docId).snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+
+          if (data == null) {
+            return Center(child: Text('No data found for this user.'));
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("User Information", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "User Information",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
                 const SizedBox(height: 8),
-                MyTextfield(hintText: 'Full Name', obsecureText: false, controller: nameController, enabled: isEditing),
+                MyTextfield(
+                  hintText: 'Full Name',
+                  obsecureText: false,
+                  controller: nameController,
+                  enabled: isEditing,
+                ),
                 const SizedBox(height: 12),
-                MyTextfield(hintText: 'Birthdate', obsecureText: false, controller: birthdateController, enabled: isEditing),
+                MyTextfield(
+                  hintText: 'Birthdate',
+                  obsecureText: false,
+                  controller: birthdateController,
+                  enabled: isEditing,
+                ),
                 const SizedBox(height: 12),
-                MyTextfield(hintText: 'Phone Number', obsecureText: false, controller: phoneController, enabled: isEditing),
+                MyTextfield(
+                  hintText: 'Phone Number',
+                  obsecureText: false,
+                  controller: phoneController,
+                  enabled: isEditing,
+                ),
                 const SizedBox(height: 18),
-                const Text("Membership Information", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  "Membership Information",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,20 +318,40 @@ class _UserDetailsState extends State<UserDetails> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black12, offset: Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 4,
+                              color: Colors.black12,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
-                            const Text("Sessions Left", style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              "Sessions Left",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 if (isEditing)
-                                  IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: () => adjustSessions(-1)),
-                                Text('$sessionsLeft', style: const TextStyle(fontSize: 18)),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                    onPressed: () => adjustSessions(-1),
+                                  ),
+                                Text(
+                                  '$sessionsLeft',
+                                  style: const TextStyle(fontSize: 18),
+                                ),
                                 if (isEditing)
-                                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: () => adjustSessions(1)),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    onPressed: () => adjustSessions(1),
+                                  ),
                               ],
                             ),
                           ],
@@ -270,20 +365,32 @@ class _UserDetailsState extends State<UserDetails> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black12, offset: Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 4,
+                              color: Colors.black12,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
-                            const Text("Expiry Date", style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              "Expiry Date",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.calendar_today, size: 16),
                                 const SizedBox(width: 4),
-                                Text(expiryDate, style: const TextStyle(fontSize: 16)),
+                                Text(
+                                  expiryDate,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
