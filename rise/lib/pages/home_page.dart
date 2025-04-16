@@ -1,4 +1,4 @@
-import 'package:attend_app/components/buttons.dart';
+import 'package:rise/components/buttons.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {

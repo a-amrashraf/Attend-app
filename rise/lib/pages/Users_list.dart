@@ -1,4 +1,4 @@
-import 'package:attend_app/components/card.dart';
+import 'package:rise/components/card.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_details.dart';

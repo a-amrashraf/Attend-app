@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:attend_app/components/text_field.dart';
-import 'package:attend_app/components/buttons.dart';
-import 'package:attend_app/components/sesh_options.dart';
+import 'package:rise/components/text_field.dart';
+import 'package:rise/components/buttons.dart';
+import 'package:rise/components/sesh_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserDetails extends StatefulWidget {

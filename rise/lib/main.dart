@@ -1,6 +1,6 @@
-import 'package:attend_app/pages/users_list.dart';
-import 'package:attend_app/pages/add_user.dart';
-import 'package:attend_app/pages/home_page.dart';
+import 'package:rise/pages/users_list.dart';
+import 'package:rise/pages/add_user.dart';
+import 'package:rise/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
