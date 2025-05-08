@@ -43,6 +43,8 @@ Future<void> addUserToFirebase({
     "startDate": DateFormat('yyyy-MM-dd').format(now),
     "endDate": DateFormat('yyyy-MM-dd').format(endDate),
     "attendanceInfo": "New User",
+    'secret': 'BigYahya',
+
   });
 
   clearInputs();

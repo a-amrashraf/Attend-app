@@ -28,6 +28,7 @@ class _UsersListState extends State<UsersList> {
     usersRef.doc(docId).update({
       'sessionsLeft': currentSessions - 1,
       'attendanceInfo': 'Last visit: ${DateTime.now().toString().split(' ')[0]}',
+      'secret': 'BigYahya',
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

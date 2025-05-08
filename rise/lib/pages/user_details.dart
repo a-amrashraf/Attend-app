@@ -56,6 +56,7 @@ class _UserDetailsState extends State<UserDetails> {
         'phone': phoneController.text,
         'sessionsLeft': sessionsLeft,
         'endDate': expiryDate,
+        'secret': 'BigYahya',
       });
 
       setState(() => isEditing = false);
@@ -68,7 +69,7 @@ class _UserDetailsState extends State<UserDetails> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error: \$e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -131,6 +132,7 @@ class _UserDetailsState extends State<UserDetails> {
                     await usersRef.doc(widget.docId).update({
                       'sessionsLeft': newSessions,
                       'endDate': newExpiry.toString().split(' ')[0],
+                      'secret': 'BigYahya',
                     });
 
                     Navigator.pop(context);
@@ -148,7 +150,7 @@ class _UserDetailsState extends State<UserDetails> {
                   } catch (e) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                      SnackBar(content: Text('Error: \$e'), backgroundColor: Colors.red),
                     );
                   }
                 },
@@ -190,53 +192,59 @@ class _UserDetailsState extends State<UserDetails> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
+  icon: const Icon(Icons.delete, color: Colors.red),
+  onPressed: () async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Delete"),
+        content: const Text("Are you sure you want to delete this user? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final deletedUserData = Map<String, dynamic>.from(widget.initialData);
+      await usersRef.doc(widget.docId).delete();
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('User deleted'),
+          backgroundColor: Colors.red,
+          action: SnackBarAction(
+            label: 'UNDO',
+            textColor: Colors.white,
             onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Confirm Delete"),
-                  content: const Text("Are you sure you want to delete this user? This action cannot be undone."),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text("Delete", style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
+              deletedUserData['secret'] = 'BigYahya';
+              await usersRef.doc(widget.docId).set(deletedUserData);
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('User restored'),
+                  backgroundColor: Colors.green,
                 ),
               );
-
-              if (confirm == true) {
-                final deletedUserData = widget.initialData;
-                await usersRef.doc(widget.docId).delete();
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('User deleted'),
-                    backgroundColor: Colors.red,
-                    action: SnackBarAction(
-                      label: 'UNDO',
-                      textColor: Colors.white,
-                      onPressed: () async {
-                        await usersRef.doc(widget.docId).set(deletedUserData);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('User restored'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              }
             },
           ),
+        ),
+      );
+    }
+  },
+),
+
         ],
       ),
       body: StreamBuilder<DocumentSnapshot>(
